@@ -1,0 +1,1045 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Elective Course Selection Portal | Dept. of Computer Science | St. Joseph's College</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700;900&family=Inter:wght@300;400;500;600;700&family=Poppins:wght@300;400;500;600;700&display=swap');
+
+        :root {
+            --primary: #1a237e;
+            --primary-light: #3949ab;
+            --primary-dark: #0d1452;
+            --secondary: #c62828;
+            --secondary-light: #ef5350;
+            --accent: #f9a825;
+            --accent-light: #fdd835;
+            --gold: #d4af37;
+            --gold-light: #f0d060;
+            --bg-light: #f5f7ff;
+            --bg-card: #ffffff;
+            --text-dark: #1a1a2e;
+            --text-muted: #6b7280;
+            --success: #2e7d32;
+            --success-light: #4caf50;
+            --error: #c62828;
+            --border: #e0e0e0;
+            --shadow: 0 10px 40px rgba(26, 35, 126, 0.12);
+            --shadow-lg: 0 20px 60px rgba(26, 35, 126, 0.18);
+            --radius: 16px;
+            --radius-sm: 10px;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: var(--bg-light);
+            color: var(--text-dark);
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        .bg-pattern {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%; z-index: -1;
+            background: 
+                radial-gradient(ellipse at 10% 20%, rgba(26, 35, 126, 0.06) 0%, transparent 50%),
+                radial-gradient(ellipse at 90% 80%, rgba(198, 40, 40, 0.04) 0%, transparent 50%),
+                var(--bg-light);
+        }
+
+        .college-header {
+            background: linear-gradient(135deg, var(--primary-dark) 0%, var(--primary) 40%, var(--primary-light) 100%);
+            color: white; padding: 0; position: relative; overflow: hidden;
+        }
+
+        .header-top-bar {
+            background: rgba(0,0,0,0.2); padding: 8px 40px; display: flex;
+            justify-content: space-between; align-items: center; font-size: 0.8rem;
+            letter-spacing: 0.5px; backdrop-filter: blur(10px);
+        }
+
+        .header-main {
+            display: flex; align-items: center; padding: 20px 40px; gap: 25px; position: relative; z-index: 1;
+        }
+
+        .college-logo {
+            width: 110px; height: 110px; flex-shrink: 0;
+            display: flex; align-items: center; justify-content: center;
+        }
+
+        .college-logo img {
+            width: 100%; height: 100%; object-fit: contain;
+            filter: drop-shadow(0 4px 12px rgba(0,0,0,0.3));
+        }
+
+        .header-text { flex: 1; }
+
+        .header-text .college-name {
+            font-family: 'Playfair Display', serif; font-size: 1.9rem; font-weight: 900;
+            letter-spacing: 1px; text-shadow: 0 2px 10px rgba(0,0,0,0.2); line-height: 1.2;
+        }
+
+        .header-text .college-name .autonomous {
+            font-size: 0.75rem; font-family: 'Inter', sans-serif; font-weight: 500;
+            background: var(--gold); color: var(--primary-dark); padding: 2px 12px;
+            border-radius: 20px; display: inline-block; margin-left: 10px;
+            vertical-align: middle; letter-spacing: 1.5px;
+        }
+
+        .header-text .dept-name {
+            font-family: 'Poppins', sans-serif; font-size: 1.15rem; font-weight: 500;
+            margin-top: 6px; opacity: 0.95; letter-spacing: 0.5px;
+        }
+
+        .header-text .dept-name span { color: var(--accent-light); font-weight: 600; }
+
+        .portal-banner {
+            background: linear-gradient(135deg, var(--secondary) 0%, #b71c1c 100%);
+            color: white; text-align: center; padding: 22px 40px; position: relative; overflow: hidden;
+        }
+
+        .portal-banner h2 {
+            font-family: 'Poppins', sans-serif; font-size: 1.4rem; font-weight: 600;
+            position: relative; z-index: 1; letter-spacing: 0.5px;
+        }
+
+        .portal-banner .batch-info {
+            font-size: 0.9rem; opacity: 0.9; margin-top: 4px; position: relative; z-index: 1; font-weight: 400;
+        }
+
+        .portal-banner .batch-info strong {
+            background: rgba(255,255,255,0.2); padding: 2px 12px; border-radius: 20px; font-weight: 600;
+        }
+
+        .nav-tabs {
+            display: flex; justify-content: center; gap: 0; background: white;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.06); position: sticky; top: 0; z-index: 100;
+        }
+
+        .nav-tab {
+            padding: 16px 35px; font-family: 'Poppins', sans-serif; font-size: 0.95rem;
+            font-weight: 500; color: var(--text-muted); cursor: pointer; border: none;
+            background: none; position: relative; transition: all 0.3s ease; letter-spacing: 0.3px;
+        }
+
+        .nav-tab:hover { color: var(--primary); }
+        .nav-tab.active { color: var(--primary); font-weight: 600; }
+        .nav-tab.active::after {
+            content: ''; position: absolute; bottom: 0; left: 20%; right: 20%; height: 3px;
+            background: linear-gradient(90deg, var(--primary), var(--secondary)); border-radius: 3px 3px 0 0;
+        }
+
+        .main-content { max-width: 960px; margin: 40px auto; padding: 0 20px; }
+
+        .page-section { display: none; animation: fadeSlideIn 0.5s ease; }
+        .page-section.active { display: block; }
+
+        @keyframes fadeSlideIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .form-card {
+            background: var(--bg-card); border-radius: var(--radius); box-shadow: var(--shadow);
+            overflow: hidden; border: 1px solid rgba(26, 35, 126, 0.06);
+        }
+
+        .form-card-header {
+            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-light) 100%);
+            color: white; padding: 28px 35px; position: relative; overflow: hidden;
+        }
+
+        .form-card-header h3 { font-family: 'Poppins', sans-serif; font-size: 1.3rem; font-weight: 600; position: relative; z-index: 1; }
+        .form-card-header p { font-size: 0.85rem; opacity: 0.85; margin-top: 5px; position: relative; z-index: 1; }
+
+        .form-card-body { padding: 35px; }
+
+        .notice-banner {
+            background: rgba(26, 35, 126, 0.05); border-left: 4px solid var(--primary);
+            padding: 14px 18px; border-radius: 8px; margin-bottom: 25px;
+            font-size: 0.85rem; color: var(--primary); line-height: 1.5;
+        }
+
+        .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 25px; margin-bottom: 25px; }
+        .form-group { position: relative; }
+        .form-group label {
+            display: block; font-family: 'Poppins', sans-serif; font-size: 0.85rem;
+            font-weight: 600; color: var(--primary); margin-bottom: 8px; letter-spacing: 0.3px;
+        }
+        .form-group label .required { color: var(--secondary); margin-left: 2px; }
+
+        .form-group input {
+            width: 100%; padding: 14px 18px; border: 2px solid var(--border); border-radius: var(--radius-sm);
+            font-family: 'Inter', sans-serif; font-size: 0.95rem; color: var(--text-dark);
+            transition: all 0.3s ease; background: #fafbff; outline: none;
+        }
+
+        .form-group input:focus { border-color: var(--primary-light); box-shadow: 0 0 0 4px rgba(57, 73, 171, 0.1); background: white; }
+        .form-group input.error { border-color: var(--error); box-shadow: 0 0 0 4px rgba(198, 40, 40, 0.1); }
+        .form-group .error-msg { color: var(--error); font-size: 0.78rem; margin-top: 5px; display: none; font-weight: 500; }
+        .form-group .error-msg.show { display: block; }
+
+        .course-set { margin-bottom: 30px; }
+        .course-set-title {
+            font-family: 'Poppins', sans-serif; font-size: 1rem; font-weight: 600;
+            color: var(--primary); margin-bottom: 15px; display: flex; align-items: center; gap: 10px;
+        }
+        .course-set-title .set-badge {
+            background: linear-gradient(135deg, var(--primary), var(--primary-light)); color: white;
+            padding: 3px 14px; border-radius: 20px; font-size: 0.75rem; font-weight: 600; letter-spacing: 0.5px;
+        }
+
+        .course-options { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
+        .course-option { position: relative; }
+        .course-option input[type="radio"] { position: absolute; opacity: 0; width: 0; height: 0; }
+
+        .course-option label {
+            display: flex; align-items: flex-start; gap: 14px; padding: 18px 20px;
+            border: 2px solid var(--border); border-radius: var(--radius-sm); cursor: pointer;
+            transition: all 0.3s ease; background: #fafbff; min-height: 90px;
+        }
+
+        .course-option label:hover {
+            border-color: var(--primary-light); background: rgba(57, 73, 171, 0.03);
+            transform: translateY(-2px); box-shadow: 0 4px 15px rgba(26, 35, 126, 0.08);
+        }
+
+        .course-option input[type="radio"]:checked + label {
+            border-color: var(--primary); background: linear-gradient(135deg, rgba(26, 35, 126, 0.06), rgba(57, 73, 171, 0.04));
+            box-shadow: 0 4px 20px rgba(26, 35, 126, 0.12);
+        }
+
+        .course-option input[type="radio"]:checked + label .radio-dot { background: var(--primary); border-color: var(--primary); }
+        .course-option input[type="radio"]:checked + label .radio-dot::after {
+            content: ''; width: 8px; height: 8px; background: white; border-radius: 50%;
+            position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
+        }
+
+        .course-option input[type="radio"]:disabled + label {
+            opacity: 0.6; cursor: not-allowed; border-color: var(--error) !important;
+            background: rgba(198, 40, 40, 0.05) !important; transform: none !important; box-shadow: none !important;
+        }
+
+        .radio-dot {
+            width: 22px; height: 22px; border-radius: 50%; border: 2px solid var(--border);
+            flex-shrink: 0; position: relative; transition: all 0.3s ease; margin-top: 2px;
+        }
+
+        .course-info .course-code {
+            font-family: 'Poppins', sans-serif; font-size: 0.75rem; font-weight: 600;
+            color: var(--primary-light); background: rgba(57, 73, 171, 0.08);
+            padding: 2px 10px; border-radius: 12px; display: inline-block; margin-bottom: 5px;
+        }
+
+        .course-info .course-name { font-family: 'Poppins', sans-serif; font-size: 0.92rem; font-weight: 600; color: var(--text-dark); line-height: 1.3; }
+        .course-info .course-type { font-size: 0.75rem; color: var(--text-muted); margin-top: 3px; }
+
+        .submit-btn {
+            width: 100%; padding: 16px; background: linear-gradient(135deg, var(--primary) 0%, var(--primary-light) 100%);
+            color: white; border: none; border-radius: var(--radius-sm); font-family: 'Poppins', sans-serif;
+            font-size: 1.05rem; font-weight: 600; cursor: pointer; transition: all 0.3s ease;
+            letter-spacing: 0.5px; position: relative; overflow: hidden; margin-top: 10px;
+        }
+
+        .submit-btn:hover { transform: translateY(-2px); box-shadow: 0 8px 30px rgba(26, 35, 126, 0.3); }
+
+        .modal-overlay {
+            display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(0,0,0,0.5); backdrop-filter: blur(5px); z-index: 1000;
+            align-items: center; justify-content: center;
+        }
+        .modal-overlay.show { display: flex; animation: fadeIn 0.3s ease; }
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+
+        .modal {
+            background: white; border-radius: var(--radius); padding: 40px; max-width: 450px;
+            width: 90%; text-align: center; animation: modalSlide 0.4s ease; box-shadow: var(--shadow-lg);
+        }
+        @keyframes modalSlide { from { opacity: 0; transform: scale(0.9) translateY(20px); } to { opacity: 1; transform: scale(1) translateY(0); } }
+
+        .modal .success-icon {
+            width: 80px; height: 80px; background: linear-gradient(135deg, var(--success), var(--success-light));
+            border-radius: 50%; display: flex; align-items: center; justify-content: center;
+            margin: 0 auto 20px; font-size: 2.5rem; color: white; animation: successPop 0.5s ease 0.2s both;
+        }
+        @keyframes successPop { from { transform: scale(0); } to { transform: scale(1); } }
+
+        .modal h3 { font-family: 'Poppins', sans-serif; font-size: 1.4rem; color: var(--text-dark); margin-bottom: 10px; }
+        .modal p { color: var(--text-muted); font-size: 0.9rem; line-height: 1.6; margin-bottom: 25px; }
+        .modal .close-btn {
+            padding: 12px 35px; background: var(--primary); color: white; border: none;
+            border-radius: var(--radius-sm); font-family: 'Poppins', sans-serif; font-size: 0.95rem;
+            font-weight: 500; cursor: pointer; transition: all 0.3s ease;
+        }
+        .modal .close-btn:hover { background: var(--primary-light); transform: translateY(-2px); }
+
+        .login-card { max-width: 440px; margin: 0 auto; }
+        .login-card .form-card-body { padding: 40px 35px; }
+        .login-icon {
+            width: 70px; height: 70px; background: linear-gradient(135deg, var(--primary), var(--primary-light));
+            border-radius: 50%; display: flex; align-items: center; justify-content: center;
+            margin: 0 auto 25px; font-size: 1.8rem; color: white;
+        }
+        .login-btn {
+            width: 100%; padding: 14px; background: linear-gradient(135deg, var(--primary) 0%, var(--primary-light) 100%);
+            color: white; border: none; border-radius: var(--radius-sm); font-family: 'Poppins', sans-serif;
+            font-size: 1rem; font-weight: 600; cursor: pointer; transition: all 0.3s ease; margin-top: 10px;
+        }
+        .login-btn:hover { transform: translateY(-2px); box-shadow: 0 8px 30px rgba(26, 35, 126, 0.3); }
+        .login-error {
+            background: rgba(198, 40, 40, 0.08); border: 1px solid rgba(198, 40, 40, 0.2);
+            color: var(--error); padding: 12px 18px; border-radius: var(--radius-sm);
+            font-size: 0.85rem; margin-bottom: 20px; display: none; font-weight: 500;
+        }
+        .login-error.show { display: block; animation: shake 0.4s ease; }
+        @keyframes shake { 0%, 100% { transform: translateX(0); } 25% { transform: translateX(-8px); } 75% { transform: translateX(8px); } }
+
+        .admin-dashboard { display: none; }
+        .admin-dashboard.active { display: block; }
+
+        .stats-row { display: grid; grid-template-columns: repeat(4, 1fr); gap: 20px; margin-bottom: 30px; }
+        .stat-card {
+            background: white; border-radius: var(--radius); padding: 24px; box-shadow: var(--shadow);
+            text-align: center; border: 1px solid rgba(26, 35, 126, 0.06); transition: transform 0.3s ease;
+        }
+        .stat-card:hover { transform: translateY(-4px); }
+        .stat-card .stat-number { font-family: 'Playfair Display', serif; font-size: 2.2rem; font-weight: 900; color: var(--primary); }
+        .stat-card .stat-label { font-size: 0.8rem; color: var(--text-muted); margin-top: 5px; font-weight: 500; letter-spacing: 0.3px; }
+        .stat-card:nth-child(1) { border-top: 4px solid var(--primary); }
+        .stat-card:nth-child(2) { border-top: 4px solid var(--secondary); }
+        .stat-card:nth-child(3) { border-top: 4px solid var(--success); }
+        .stat-card:nth-child(4) { border-top: 4px solid var(--accent); }
+
+        .table-card {
+            background: white; border-radius: var(--radius); box-shadow: var(--shadow);
+            overflow: hidden; margin-bottom: 30px; border: 1px solid rgba(26, 35, 126, 0.06);
+        }
+        .table-card-header {
+            display: flex; justify-content: space-between; align-items: center; padding: 22px 28px;
+            border-bottom: 1px solid var(--border); flex-wrap: wrap; gap: 15px;
+        }
+        .table-card-header h3 { font-family: 'Poppins', sans-serif; font-size: 1.1rem; font-weight: 600; color: var(--text-dark); }
+        .table-actions { display: flex; gap: 10px; flex-wrap: wrap; }
+
+        .btn {
+            padding: 10px 20px; border: none; border-radius: var(--radius-sm); font-family: 'Poppins', sans-serif;
+            font-size: 0.85rem; font-weight: 500; cursor: pointer; transition: all 0.3s ease;
+            display: inline-flex; align-items: center; gap: 6px;
+        }
+        .btn-success { background: var(--success); color: white; }
+        .btn-success:hover { background: var(--success-light); transform: translateY(-2px); }
+        .btn-danger { background: var(--error); color: white; }
+        .btn-danger:hover { background: var(--secondary-light); transform: translateY(-2px); }
+
+        .table-wrapper { overflow-x: auto; }
+        table { width: 100%; border-collapse: collapse; }
+        thead th {
+            background: linear-gradient(135deg, var(--primary-dark), var(--primary)); color: white;
+            padding: 14px 18px; font-family: 'Poppins', sans-serif; font-size: 0.82rem; font-weight: 600;
+            text-align: left; letter-spacing: 0.5px; text-transform: uppercase; white-space: nowrap;
+        }
+        tbody td { padding: 14px 18px; border-bottom: 1px solid #f0f0f0; font-size: 0.88rem; color: var(--text-dark); }
+        tbody tr:hover { background: rgba(26, 35, 126, 0.03); }
+        tbody tr:nth-child(even) { background: #fafbff; }
+        .reg-number { font-family: 'Poppins', sans-serif; font-weight: 600; color: var(--primary); }
+        .course-tag { display: inline-block; padding: 4px 12px; border-radius: 20px; font-size: 0.75rem; font-weight: 600; white-space: nowrap; }
+        .tag-bda { background: rgba(26, 35, 126, 0.1); color: var(--primary); }
+        .tag-cc { background: rgba(198, 40, 40, 0.1); color: var(--secondary); }
+        .tag-iot { background: rgba(46, 125, 50, 0.1); color: var(--success); }
+        .tag-ai { background: rgba(249, 168, 37, 0.15); color: #e65100; }
+
+        .no-data { text-align: center; padding: 60px 20px; color: var(--text-muted); }
+        .no-data .no-data-icon { font-size: 3rem; margin-bottom: 15px; opacity: 0.4; }
+
+        .summary-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 30px; }
+        .summary-card {
+            background: white; border-radius: var(--radius); padding: 24px; box-shadow: var(--shadow);
+            border: 1px solid rgba(26, 35, 126, 0.06);
+        }
+        .summary-card h4 {
+            font-family: 'Poppins', sans-serif; font-size: 0.95rem; font-weight: 600; color: var(--primary);
+            margin-bottom: 15px; padding-bottom: 10px; border-bottom: 2px solid var(--bg-light);
+        }
+        .summary-item { display: flex; justify-content: space-between; align-items: center; padding: 10px 0; border-bottom: 1px solid #f5f5f5; }
+        .summary-item:last-child { border-bottom: none; }
+        .summary-item .item-name { font-size: 0.88rem; color: var(--text-dark); font-weight: 500; }
+        .summary-item .item-count {
+            font-family: 'Poppins', sans-serif; font-weight: 700; font-size: 1.1rem;
+            padding: 4px 14px; border-radius: 20px; transition: all 0.3s ease;
+        }
+
+        .filter-tabs { display: flex; gap: 8px; margin-bottom: 20px; flex-wrap: wrap; }
+        .filter-tab {
+            padding: 8px 18px; border: 2px solid var(--border); border-radius: 25px; background: white;
+            font-family: 'Poppins', sans-serif; font-size: 0.82rem; font-weight: 500; cursor: pointer;
+            transition: all 0.3s ease; color: var(--text-muted);
+        }
+        .filter-tab:hover { border-color: var(--primary-light); color: var(--primary); }
+        .filter-tab.active { background: var(--primary); color: white; border-color: var(--primary); }
+
+        .portal-footer {
+            text-align: center; padding: 30px 20px; color: var(--text-muted); font-size: 0.82rem;
+            border-top: 1px solid var(--border); margin-top: 60px; background: white;
+        }
+        .portal-footer .footer-brand { font-family: 'Poppins', sans-serif; font-weight: 600; color: var(--primary); }
+
+        .logout-btn {
+            position: fixed; top: 20px; right: 20px; z-index: 200; padding: 10px 20px;
+            background: var(--error); color: white; border: none; border-radius: var(--radius-sm);
+            font-family: 'Poppins', sans-serif; font-size: 0.85rem; font-weight: 500;
+            cursor: pointer; transition: all 0.3s ease; display: none;
+        }
+        .logout-btn.show { display: block; }
+        .logout-btn:hover { background: var(--secondary-light); transform: translateY(-2px); }
+
+        @media (max-width: 768px) {
+            .header-main { flex-direction: column; text-align: center; padding: 20px; }
+            .header-text .college-name { font-size: 1.4rem; }
+            .header-text .college-name .autonomous { display: block; margin: 8px auto 0; width: fit-content; }
+            .form-row, .course-options, .stats-row, .summary-grid { grid-template-columns: 1fr; }
+            .nav-tab { padding: 12px 20px; font-size: 0.85rem; }
+            .table-card-header { flex-direction: column; align-items: flex-start; }
+        }
+    </style>
+</head>
+<body>
+    <div class="bg-pattern"></div>
+
+    <header class="college-header">
+        <div class="header-top-bar">
+            <span>📍 Autonomous | Affiliated to Bharathidasan University</span>
+            <span>📞 0431-4226430 | 🌐 www.sjctni.edu</span>
+        </div>
+        <div class="header-main">
+            <div class="college-logo">
+                <img src="stjosephs-logo.png" alt="St. Joseph's College Logo">
+            </div>
+            <div class="header-text">
+                <div class="college-name">
+                    St. Joseph's College
+                    <span class="autonomous">AUTONOMOUS</span>
+                </div>
+                <div class="dept-name">
+                    Department of <span>Computer Science</span>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <div class="portal-banner">
+        <h2>📋 Elective Course Selection Portal — Semester VI</h2>
+        <div class="batch-info">
+            B.Sc. Computer Science (Shift I) — <strong>Batch 2024–2027</strong>
+        </div>
+    </div>
+
+    <nav class="nav-tabs">
+        <button class="nav-tab active" onclick="showSection('student')">
+            <span class="tab-icon">🎓</span> Student Registration
+        </button>
+        <button class="nav-tab" onclick="showSection('admin')">
+            <span class="tab-icon">🔐</span> Admin Panel
+        </button>
+    </nav>
+
+    <button class="logout-btn" id="logoutBtn" onclick="adminLogout()">🚪 Logout</button>
+
+    <div class="main-content">
+        <!-- Student Section -->
+        <div class="page-section active" id="studentSection">
+            <div class="form-card">
+                <div class="form-card-header">
+                    <h3>📝 Elective Course Registration Form</h3>
+                    <p>Select one course from each set. All fields are mandatory.</p>
+                </div>
+                <div class="form-card-body">
+                    <div class="notice-banner">
+                        <strong>ℹ️ Seat Limit Notice:</strong> Each elective course has a strict capacity limit (33 or 32 seats). 
+                        Courses will be automatically disabled when full. Allocation is on a <strong>first-come, first-served</strong> basis.
+                    </div>
+                    <form id="studentForm" onsubmit="return handleSubmit(event)">
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label>Registration Number <span class="required">*</span></label>
+                                <input type="text" id="regNumber" placeholder="e.g., 24UCS101" maxlength="9" autocomplete="off">
+                                <div class="error-msg" id="regError">Enter a valid registration number (24UCS101 – 24UCS175)</div>
+                            </div>
+                            <div class="form-group">
+                                <label>Student Name <span class="required">*</span></label>
+                                <input type="text" id="studentName" placeholder="Enter your full name" autocomplete="off">
+                                <div class="error-msg" id="nameError">Please enter your full name</div>
+                            </div>
+                        </div>
+
+                        <!-- Set 1: DSE-3 -->
+                        <div class="course-set">
+                            <div class="course-set-title">
+                                <span class="set-badge">SET 1 — DSE 3</span>
+                                Choose One Discipline Specific Elective
+                            </div>
+                            <div class="course-options">
+                                <div class="course-option">
+                                    <input type="radio" name="dse3" id="dse3a" value="23UCS63ES03A - Big Data Analytics">
+                                    <label for="dse3a">
+                                        <div class="radio-dot"></div>
+                                        <div class="course-info">
+                                            <div class="course-code">23UCS63ES03A</div>
+                                            <div class="course-name">Big Data Analytics</div>
+                                            <div class="course-type">Discipline Specific Elective - 3</div>
+                                            <div class="seats-remaining" id="seats-dse3a" style="font-size: 0.8rem; font-weight: 600; margin-top: 6px; color: var(--success);">
+                                                33 seats remaining
+                                            </div>
+                                        </div>
+                                    </label>
+                                </div>
+                                <div class="course-option">
+                                    <input type="radio" name="dse3" id="dse3b" value="23UCS63ES03B - Cloud Computing">
+                                    <label for="dse3b">
+                                        <div class="radio-dot"></div>
+                                        <div class="course-info">
+                                            <div class="course-code">23UCS63ES03B</div>
+                                            <div class="course-name">Cloud Computing</div>
+                                            <div class="course-type">Discipline Specific Elective - 3</div>
+                                            <div class="seats-remaining" id="seats-dse3b" style="font-size: 0.8rem; font-weight: 600; margin-top: 6px; color: var(--success);">
+                                                32 seats remaining
+                                            </div>
+                                        </div>
+                                    </label>
+                                </div>
+                            </div>
+                            <div class="error-msg" id="dse3Error" style="margin-top:10px;">Please select one course from Set 1</div>
+                        </div>
+
+                        <!-- Set 2: DSE-4 -->
+                        <div class="course-set">
+                            <div class="course-set-title">
+                                <span class="set-badge">SET 2 — DSE 4</span>
+                                Choose One Discipline Specific Elective
+                            </div>
+                            <div class="course-options">
+                                <div class="course-option">
+                                    <input type="radio" name="dse4" id="dse4a" value="23UCS63ES04A - Internet of Things">
+                                    <label for="dse4a">
+                                        <div class="radio-dot"></div>
+                                        <div class="course-info">
+                                            <div class="course-code">23UCS63ES04A</div>
+                                            <div class="course-name">Internet of Things</div>
+                                            <div class="course-type">Discipline Specific Elective - 4</div>
+                                            <div class="seats-remaining" id="seats-dse4a" style="font-size: 0.8rem; font-weight: 600; margin-top: 6px; color: var(--success);">
+                                                33 seats remaining
+                                            </div>
+                                        </div>
+                                    </label>
+                                </div>
+                                <div class="course-option">
+                                    <input type="radio" name="dse4" id="dse4b" value="23UCS63ES04B - Artificial Intelligence and Machine Learning">
+                                    <label for="dse4b">
+                                        <div class="radio-dot"></div>
+                                        <div class="course-info">
+                                            <div class="course-code">23UCS63ES04B</div>
+                                            <div class="course-name">Artificial Intelligence & Machine Learning</div>
+                                            <div class="course-type">Discipline Specific Elective - 4</div>
+                                            <div class="seats-remaining" id="seats-dse4b" style="font-size: 0.8rem; font-weight: 600; margin-top: 6px; color: var(--success);">
+                                                32 seats remaining
+                                            </div>
+                                        </div>
+                                    </label>
+                                </div>
+                            </div>
+                            <div class="error-msg" id="dse4Error" style="margin-top:10px;">Please select one course from Set 2</div>
+                        </div>
+
+                        <button type="submit" class="submit-btn" id="submitBtn">
+                            ✅ Submit Course Selection
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <!-- Admin Section -->
+        <div class="page-section" id="adminSection">
+            <div id="adminLogin">
+                <div class="form-card login-card">
+                    <div class="form-card-header" style="text-align:center;">
+                        <h3>🔐 Admin Login</h3>
+                        <p>Authorized personnel only</p>
+                    </div>
+                    <div class="form-card-body">
+                        <div class="login-icon">👤</div>
+                        <div class="login-error" id="loginError">Invalid username or password. Please try again.</div>
+                        <div class="form-group">
+                            <label>Username</label>
+                            <input type="text" id="adminUser" placeholder="Enter username" autocomplete="off">
+                        </div>
+                        <div class="form-group">
+                            <label>Password</label>
+                            <input type="password" id="adminPass" placeholder="Enter password" onkeypress="if(event.key==='Enter')adminLoginFn()">
+                        </div>
+                        <button class="login-btn" onclick="adminLoginFn()">🔓 Login to Dashboard</button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="admin-dashboard" id="adminDashboard">
+                <div class="stats-row" id="statsRow">
+                    <div class="stat-card">
+                        <div class="stat-number" id="totalStudents">0</div>
+                        <div class="stat-label">Total Registered</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-number" id="totalRemaining">65</div>
+                        <div class="stat-label">Total Seats Remaining</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-number" id="dse3Count">0</div>
+                        <div class="stat-label">DSE-3 Choices</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-number" id="dse4Count">0</div>
+                        <div class="stat-label">DSE-4 Choices</div>
+                    </div>
+                </div>
+
+                <div class="summary-grid" id="summaryGrid">
+                    <div class="summary-card">
+                        <h4>📊 DSE-3 Distribution (Set 1)</h4>
+                        <div class="summary-item">
+                            <span class="item-name">Big Data Analytics <small style="color:var(--text-muted)">(Cap: 33)</small></span>
+                            <span class="item-count" id="bdaCount">0 / 33</span>
+                        </div>
+                        <div class="summary-item">
+                            <span class="item-name">Cloud Computing <small style="color:var(--text-muted)">(Cap: 32)</small></span>
+                            <span class="item-count" id="ccCount">0 / 32</span>
+                        </div>
+                    </div>
+                    <div class="summary-card">
+                        <h4>📊 DSE-4 Distribution (Set 2)</h4>
+                        <div class="summary-item">
+                            <span class="item-name">Internet of Things <small style="color:var(--text-muted)">(Cap: 33)</small></span>
+                            <span class="item-count" id="iotCount">0 / 33</span>
+                        </div>
+                        <div class="summary-item">
+                            <span class="item-name">AI & Machine Learning <small style="color:var(--text-muted)">(Cap: 32)</small></span>
+                            <span class="item-count" id="aiCount">0 / 32</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="table-card">
+                    <div class="table-card-header">
+                        <h3>📋 Registered Students — Sorted by Registration Number</h3>
+                        <div class="table-actions">
+                            <button class="btn btn-success" onclick="downloadCSV()">📥 Download CSV</button>
+                            <button class="btn btn-danger" onclick="clearAllData()">🗑️ Clear All</button>
+                        </div>
+                    </div>
+                    <div style="padding: 15px 28px 0;">
+                        <div class="filter-tabs">
+                            <button class="filter-tab active" onclick="filterTable('all', this)">All Students</button>
+                            <button class="filter-tab" onclick="filterTable('bda', this)">Big Data Analytics</button>
+                            <button class="filter-tab" onclick="filterTable('cc', this)">Cloud Computing</button>
+                            <button class="filter-tab" onclick="filterTable('iot', this)">Internet of Things</button>
+                            <button class="filter-tab" onclick="filterTable('ai', this)">AI & ML</button>
+                        </div>
+                    </div>
+                    <div class="table-wrapper">
+                        <table id="dataTable">
+                            <thead>
+                                <tr>
+                                    <th>S.No</th>
+                                    <th>Reg. Number</th>
+                                    <th>Student Name</th>
+                                    <th>DSE-3 (Set 1)</th>
+                                    <th>DSE-4 (Set 2)</th>
+                                    <th>Submitted On</th>
+                                </tr>
+                            </thead>
+                            <tbody id="tableBody"></tbody>
+                        </table>
+                        <div class="no-data" id="noData">
+                            <div class="no-data-icon">📭</div>
+                            <p>No registrations yet. Student data will appear here.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal-overlay" id="successModal">
+        <div class="modal">
+            <div class="success-icon">✓</div>
+            <h3>Registration Successful!</h3>
+            <p id="successMsg">Your elective courses have been recorded successfully.</p>
+            <button class="close-btn" onclick="closeModal()">Done</button>
+        </div>
+    </div>
+
+    <footer class="portal-footer">
+        <p>© 2026 Department of Computer Science, <span class="footer-brand">St. Joseph's College (Autonomous)</span>, Tiruchirappalli</p>
+        <p style="margin-top:5px; font-size:0.75rem;">Elective Selection Portal v1.1 | B.Sc. Computer Science — Batch 2024 | Semester VI</p>
+    </footer>
+
+    <script>
+        function getRegistrations() {
+            const data = localStorage.getItem('electiveRegistrations');
+            return data ? JSON.parse(data) : [];
+        }
+
+        function saveRegistrations(data) {
+            localStorage.setItem('electiveRegistrations', JSON.stringify(data));
+        }
+
+        function showSection(section) {
+            document.querySelectorAll('.page-section').forEach(s => s.classList.remove('active'));
+            document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
+            if (section === 'student') {
+                document.getElementById('studentSection').classList.add('active');
+                document.querySelectorAll('.nav-tab')[0].classList.add('active');
+                updateSeatAvailability();
+            } else {
+                document.getElementById('adminSection').classList.add('active');
+                document.querySelectorAll('.nav-tab')[1].classList.add('active');
+            }
+        }
+
+        function validateRegNumber(reg) {
+            const pattern = /^24UCS(1[0-9]{2})$/;
+            if (!pattern.test(reg)) return false;
+            const num = parseInt(reg.replace('24UCS', ''));
+            return num >= 101 && num <= 175;
+        }
+
+        function updateSeatAvailability() {
+            const registrations = getRegistrations();
+            const counts = {
+                dse3a: registrations.filter(r => r.dse3 === "23UCS63ES03A - Big Data Analytics").length,
+                dse3b: registrations.filter(r => r.dse3 === "23UCS63ES03B - Cloud Computing").length,
+                dse4a: registrations.filter(r => r.dse4 === "23UCS63ES04A - Internet of Things").length,
+                dse4b: registrations.filter(r => r.dse4 === "23UCS63ES04B - Artificial Intelligence and Machine Learning").length
+            };
+            const caps = { dse3a: 33, dse3b: 32, dse4a: 33, dse4b: 32 };
+
+            const courses = [
+                { id: 'dse3a', count: counts.dse3a, cap: caps.dse3a, labelId: 'seats-dse3a', radioId: 'dse3a' },
+                { id: 'dse3b', count: counts.dse3b, cap: caps.dse3b, labelId: 'seats-dse3b', radioId: 'dse3b' },
+                { id: 'dse4a', count: counts.dse4a, cap: caps.dse4a, labelId: 'seats-dse4a', radioId: 'dse4a' },
+                { id: 'dse4b', count: counts.dse4b, cap: caps.dse4b, labelId: 'seats-dse4b', radioId: 'dse4b' }
+            ];
+
+            courses.forEach(c => {
+                const remaining = c.cap - c.count;
+                const el = document.getElementById(c.labelId);
+                const radio = document.getElementById(c.radioId);
+                const label = radio.nextElementSibling;
+
+                if (remaining <= 0) {
+                    el.innerHTML = "❌ Course Full";
+                    el.style.color = "var(--error)";
+                    radio.disabled = true;
+                    label.dataset.disabled = "true";
+                } else {
+                    el.innerHTML = `✅ ${remaining} seat${remaining !== 1 ? 's' : ''} remaining`;
+                    el.style.color = remaining <= 5 ? "#e65100" : "var(--success)";
+                    radio.disabled = false;
+                    if (label.dataset.disabled === "true") {
+                        delete label.dataset.disabled;
+                    }
+                }
+            });
+        }
+
+        function handleSubmit(e) {
+            e.preventDefault();
+            const regNumber = document.getElementById('regNumber').value.trim().toUpperCase();
+            const studentName = document.getElementById('studentName').value.trim();
+            const dse3 = document.querySelector('input[name="dse3"]:checked');
+            const dse4 = document.querySelector('input[name="dse4"]:checked');
+            let isValid = true;
+
+            if (!regNumber || !validateRegNumber(regNumber)) {
+                document.getElementById('regNumber').classList.add('error');
+                document.getElementById('regError').classList.add('show');
+                isValid = false;
+            } else {
+                document.getElementById('regNumber').classList.remove('error');
+                document.getElementById('regError').classList.remove('show');
+            }
+
+            if (!studentName || studentName.length < 2) {
+                document.getElementById('studentName').classList.add('error');
+                document.getElementById('nameError').classList.add('show');
+                isValid = false;
+            } else {
+                document.getElementById('studentName').classList.remove('error');
+                document.getElementById('nameError').classList.remove('show');
+            }
+
+            if (!dse3) { document.getElementById('dse3Error').classList.add('show'); isValid = false; }
+            else { document.getElementById('dse3Error').classList.remove('show'); }
+
+            if (!dse4) { document.getElementById('dse4Error').classList.add('show'); isValid = false; }
+            else { document.getElementById('dse4Error').classList.remove('show'); }
+
+            if (!isValid) return false;
+
+            const registrations = getRegistrations();
+            
+            // Final capacity check before saving
+            const counts = {
+                dse3a: registrations.filter(r => r.dse3 === "23UCS63ES03A - Big Data Analytics").length,
+                dse3b: registrations.filter(r => r.dse3 === "23UCS63ES03B - Cloud Computing").length,
+                dse4a: registrations.filter(r => r.dse4 === "23UCS63ES04A - Internet of Things").length,
+                dse4b: registrations.filter(r => r.dse4 === "23UCS63ES04B - Artificial Intelligence and Machine Learning").length
+            };
+
+            if (dse3.value === "23UCS63ES03A - Big Data Analytics" && counts.dse3a >= 33) {
+                alert("⚠️ Big Data Analytics is now full (33/33). Please choose Cloud Computing.");
+                return false;
+            }
+            if (dse3.value === "23UCS63ES03B - Cloud Computing" && counts.dse3b >= 32) {
+                alert("⚠️ Cloud Computing is now full (32/32). Please choose Big Data Analytics.");
+                return false;
+            }
+            if (dse4.value === "23UCS63ES04A - Internet of Things" && counts.dse4a >= 33) {
+                alert("⚠️ Internet of Things is now full (33/33). Please choose AI & Machine Learning.");
+                return false;
+            }
+            if (dse4.value === "23UCS63ES04B - Artificial Intelligence and Machine Learning" && counts.dse4b >= 32) {
+                alert("⚠️ AI & Machine Learning is now full (32/32). Please choose Internet of Things.");
+                return false;
+            }
+
+            if (registrations.some(r => r.regNumber === regNumber)) {
+                document.getElementById('regNumber').classList.add('error');
+                document.getElementById('regError').textContent = 'This registration number has already been submitted!';
+                document.getElementById('regError').classList.add('show');
+                return false;
+            }
+
+            const record = {
+                regNumber: regNumber,
+                name: studentName,
+                dse3: dse3.value,
+                dse4: dse4.value,
+                timestamp: new Date().toLocaleString('en-IN', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' })
+            };
+
+            registrations.push(record);
+            saveRegistrations(registrations);
+
+            document.getElementById('successMsg').innerHTML = `
+                <strong>${studentName}</strong> (${regNumber})<br><br>
+                <strong>DSE-3:</strong> ${dse3.value.split(' - ')[1]}<br>
+                <strong>DSE-4:</strong> ${dse4.value.split(' - ')[1]}<br><br>
+                Your selection has been recorded on ${record.timestamp}.
+            `;
+            document.getElementById('successModal').classList.add('show');
+            document.getElementById('studentForm').reset();
+            document.querySelectorAll('.error').forEach(el => el.classList.remove('error'));
+            document.querySelectorAll('.error-msg').forEach(el => el.classList.remove('show'));
+            
+            updateSeatAvailability();
+            return false;
+        }
+
+        function closeModal() {
+            document.getElementById('successModal').classList.remove('show');
+        }
+
+        function adminLoginFn() {
+            const user = document.getElementById('adminUser').value.trim();
+            const pass = document.getElementById('adminPass').value.trim();
+            if (user === 'admin' && pass === '123') {
+                document.getElementById('adminLogin').style.display = 'none';
+                document.getElementById('adminDashboard').classList.add('active');
+                document.getElementById('logoutBtn').classList.add('show');
+                loadDashboard();
+            } else {
+                document.getElementById('loginError').classList.add('show');
+                setTimeout(() => document.getElementById('loginError').classList.remove('show'), 3000);
+            }
+        }
+
+        function adminLogout() {
+            document.getElementById('adminLogin').style.display = 'block';
+            document.getElementById('adminDashboard').classList.remove('active');
+            document.getElementById('logoutBtn').classList.remove('show');
+            document.getElementById('adminUser').value = '';
+            document.getElementById('adminPass').value = '';
+        }
+
+        function setCountColor(elementId, current, max) {
+            const el = document.getElementById(elementId);
+            el.textContent = `${current} / ${max}`;
+            if (current >= max) {
+                el.style.color = 'var(--error)';
+                el.style.background = 'rgba(198, 40, 40, 0.1)';
+            } else if (current >= max - 5) {
+                el.style.color = '#e65100';
+                el.style.background = 'rgba(249, 168, 37, 0.15)';
+            } else {
+                el.style.color = 'var(--primary)';
+                el.style.background = 'rgba(26, 35, 126, 0.08)';
+            }
+        }
+
+        function loadDashboard() {
+            const registrations = getRegistrations();
+            const sorted = [...registrations].sort((a, b) => {
+                return parseInt(a.regNumber.replace('24UCS', '')) - parseInt(b.regNumber.replace('24UCS', ''));
+            });
+
+            document.getElementById('totalStudents').textContent = registrations.length;
+            document.getElementById('totalRemaining').textContent = Math.max(0, 65 - registrations.length);
+
+            let dse3Total = 0, dse4Total = 0, bda = 0, cc = 0, iot = 0, ai = 0;
+            registrations.forEach(r => {
+                if (r.dse3) dse3Total++;
+                if (r.dse4) dse4Total++;
+                if (r.dse3 && r.dse3.includes('Big Data')) bda++;
+                if (r.dse3 && r.dse3.includes('Cloud')) cc++;
+                if (r.dse4 && r.dse4.includes('Internet')) iot++;
+                if (r.dse4 && r.dse4.includes('Artificial')) ai++;
+            });
+
+            document.getElementById('dse3Count').textContent = dse3Total;
+            document.getElementById('dse4Count').textContent = dse4Total;
+            setCountColor('bdaCount', bda, 33);
+            setCountColor('ccCount', cc, 32);
+            setCountColor('iotCount', iot, 33);
+            setCountColor('aiCount', ai, 32);
+
+            const tbody = document.getElementById('tableBody');
+            const noData = document.getElementById('noData');
+
+            if (sorted.length === 0) {
+                tbody.innerHTML = '';
+                noData.style.display = 'block';
+                return;
+            }
+
+            noData.style.display = 'none';
+            tbody.innerHTML = sorted.map((r, i) => {
+                const dse3Tag = r.dse3.includes('Big Data') ? 'tag-bda' : 'tag-cc';
+                const dse4Tag = r.dse4.includes('Internet') ? 'tag-iot' : 'tag-ai';
+                const dse3Short = r.dse3.includes('Big Data') ? 'Big Data Analytics' : 'Cloud Computing';
+                const dse4Short = r.dse4.includes('Internet') ? 'Internet of Things' : 'AI & Machine Learning';
+                return `
+                    <tr>
+                        <td>${i + 1}</td>
+                        <td class="reg-number">${r.regNumber}</td>
+                        <td>${r.name}</td>
+                        <td><span class="course-tag ${dse3Tag}">${dse3Short}</span></td>
+                        <td><span class="course-tag ${dse4Tag}">${dse4Short}</span></td>
+                        <td style="font-size:0.82rem; color:var(--text-muted);">${r.timestamp}</td>
+                    </tr>
+                `;
+            }).join('');
+        }
+
+        let currentFilter = 'all';
+        function filterTable(filter, btn) {
+            currentFilter = filter;
+            document.querySelectorAll('.filter-tab').forEach(t => t.classList.remove('active'));
+            btn.classList.add('active');
+
+            const registrations = getRegistrations();
+            const sorted = [...registrations].sort((a, b) => parseInt(a.regNumber.replace('24UCS', '')) - parseInt(b.regNumber.replace('24UCS', '')));
+            let filtered = sorted;
+            
+            if (filter === 'bda') filtered = sorted.filter(r => r.dse3 && r.dse3.includes('Big Data'));
+            else if (filter === 'cc') filtered = sorted.filter(r => r.dse3 && r.dse3.includes('Cloud'));
+            else if (filter === 'iot') filtered = sorted.filter(r => r.dse4 && r.dse4.includes('Internet'));
+            else if (filter === 'ai') filtered = sorted.filter(r => r.dse4 && r.dse4.includes('Artificial'));
+
+            const tbody = document.getElementById('tableBody');
+            const noData = document.getElementById('noData');
+
+            if (filtered.length === 0) {
+                tbody.innerHTML = '';
+                noData.style.display = 'block';
+                noData.querySelector('p').textContent = 'No students found for this filter.';
+                return;
+            }
+
+            noData.style.display = 'none';
+            tbody.innerHTML = filtered.map((r, i) => {
+                const dse3Tag = r.dse3.includes('Big Data') ? 'tag-bda' : 'tag-cc';
+                const dse4Tag = r.dse4.includes('Internet') ? 'tag-iot' : 'tag-ai';
+                const dse3Short = r.dse3.includes('Big Data') ? 'Big Data Analytics' : 'Cloud Computing';
+                const dse4Short = r.dse4.includes('Internet') ? 'Internet of Things' : 'AI & Machine Learning';
+                return `
+                    <tr>
+                        <td>${i + 1}</td>
+                        <td class="reg-number">${r.regNumber}</td>
+                        <td>${r.name}</td>
+                        <td><span class="course-tag ${dse3Tag}">${dse3Short}</span></td>
+                        <td><span class="course-tag ${dse4Tag}">${dse4Short}</span></td>
+                        <td style="font-size:0.82rem; color:var(--text-muted);">${r.timestamp}</td>
+                    </tr>
+                `;
+            }).join('');
+        }
+
+        function downloadCSV() {
+            const registrations = getRegistrations();
+            const sorted = [...registrations].sort((a, b) => parseInt(a.regNumber.replace('24UCS', '')) - parseInt(b.regNumber.replace('24UCS', '')));
+            if (sorted.length === 0) { alert('No data to download!'); return; }
+
+            let csv = 'S.No,Registration Number,Student Name,DSE-3 Code,DSE-3 Course,DSE-4 Code,DSE-4 Course,Submitted On\n';
+            sorted.forEach((r, i) => {
+                const dse3Parts = r.dse3.split(' - ');
+                const dse4Parts = r.dse4.split(' - ');
+                csv += `${i + 1},"${r.regNumber}","${r.name}","${dse3Parts[0]}","${dse3Parts[1]}","${dse4Parts[0]}","${dse4Parts[1]}","${r.timestamp}"\n`;
+            });
+
+            const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+            const link = document.createElement('a');
+            link.href = URL.createObjectURL(blob);
+            link.download = `Elective_Registration_SemVI_BScCS_2024_${new Date().toISOString().slice(0, 10)}.csv`;
+            link.click();
+            URL.revokeObjectURL(link.href);
+        }
+
+        function clearAllData() {
+            if (confirm('⚠️ Are you sure you want to delete ALL registration data? This action cannot be undone!')) {
+                if (confirm('This will permanently remove all student records and reset seat counts. Confirm?')) {
+                    localStorage.removeItem('electiveRegistrations');
+                    loadDashboard();
+                    updateSeatAvailability();
+                    alert('All data has been cleared successfully.');
+                }
+            }
+        }
+
+        document.getElementById('regNumber').addEventListener('input', function() {
+            this.value = this.value.toUpperCase();
+            this.classList.remove('error');
+            document.getElementById('regError').classList.remove('show');
+        });
+
+        document.getElementById('studentName').addEventListener('input', function() {
+            this.classList.remove('error');
+            document.getElementById('nameError').classList.remove('show');
+        });
+
+        document.querySelectorAll('input[name="dse3"], input[name="dse4"]').forEach(r => {
+            r.addEventListener('change', () => {
+                document.getElementById(r.name + 'Error').classList.remove('show');
+            });
+        });
+
+        document.getElementById('successModal').addEventListener('click', function(e) {
+            if (e.target === this) closeModal();
+        });
+
+        // Initialize seat counters on page load
+        document.addEventListener('DOMContentLoaded', updateSeatAvailability);
+    </script>
+</body>
+</html>
