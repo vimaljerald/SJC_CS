@@ -634,7 +634,7 @@
                         <h3>📋 Registered Students — Sorted by Registration Number</h3>
                         <div class="table-actions">
                             <button class="btn btn-success" onclick="downloadCSV()">📥 Download CSV</button>
-                            <button class="btn btn-danger" onclick="clearAllData()">🗑️ Clear All</button>
+                            <button class="btn btn-success" style="background:var(--primary)" onclick="refreshData()">🔄 Refresh</button>
                         </div>
                     </div>
                     <div style="padding: 15px 28px 0;">
@@ -685,13 +685,33 @@
     </footer>
 
     <script>
-        function getRegistrations() {
-            const data = localStorage.getItem('electiveRegistrations');
-            return data ? JSON.parse(data) : [];
+        // ====== PASTE YOUR GOOGLE APPS SCRIPT WEB APP URL HERE ======
+        const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyFsI3zKmIloY16KqxOrT4vIq7i6xoKqrOakpkZaH4HP-Q_cR8iWlDtYxw6e8D0pmjc/exec';
+        // ============================================================
+
+        const CAPS = { '23UCS63ES03A': 33, '23UCS63ES03B': 32, '23UCS63ES04A': 33, '23UCS63ES04B': 32 };
+        const SEAT_IDS = { '23UCS63ES03A': 'dse3a', '23UCS63ES03B': 'dse3b', '23UCS63ES04A': 'dse4a', '23UCS63ES04B': 'dse4b' };
+        const SHORT = { '23UCS63ES03A': 'Big Data Analytics', '23UCS63ES03B': 'Cloud Computing',
+                        '23UCS63ES04A': 'Internet of Things', '23UCS63ES04B': 'AI & Machine Learning' };
+        const TAG = { '23UCS63ES03A': 'tag-bda', '23UCS63ES03B': 'tag-cc', '23UCS63ES04A': 'tag-iot', '23UCS63ES04B': 'tag-ai' };
+
+        let adminCreds = null;      // kept in memory only
+        let adminRows = [];
+        let currentFilter = 'all';
+
+        function esc(s) {
+            return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
         }
 
-        function saveRegistrations(data) {
-            localStorage.setItem('electiveRegistrations', JSON.stringify(data));
+        async function apiPost(payload) {
+            // text/plain avoids a CORS preflight, which Apps Script doesn't support
+            const res = await fetch(SCRIPT_URL, { method: 'POST', body: JSON.stringify(payload) });
+            return res.json();
+        }
+
+        async function apiCounts() {
+            const res = await fetch(SCRIPT_URL);
+            return res.json();
         }
 
         function showSection(section) {
@@ -708,52 +728,40 @@
         }
 
         function validateRegNumber(reg) {
-            const pattern = /^24UCS(1[0-9]{2})$/;
-            if (!pattern.test(reg)) return false;
+            if (!/^24UCS(1[0-9]{2})$/.test(reg)) return false;
             const num = parseInt(reg.replace('24UCS', ''));
             return num >= 101 && num <= 175;
         }
 
-        function updateSeatAvailability() {
-            const registrations = getRegistrations();
-            const counts = {
-                dse3a: registrations.filter(r => r.dse3 === "23UCS63ES03A - Big Data Analytics").length,
-                dse3b: registrations.filter(r => r.dse3 === "23UCS63ES03B - Cloud Computing").length,
-                dse4a: registrations.filter(r => r.dse4 === "23UCS63ES04A - Internet of Things").length,
-                dse4b: registrations.filter(r => r.dse4 === "23UCS63ES04B - Artificial Intelligence and Machine Learning").length
-            };
-            const caps = { dse3a: 33, dse3b: 32, dse4a: 33, dse4b: 32 };
-
-            const courses = [
-                { id: 'dse3a', count: counts.dse3a, cap: caps.dse3a, labelId: 'seats-dse3a', radioId: 'dse3a' },
-                { id: 'dse3b', count: counts.dse3b, cap: caps.dse3b, labelId: 'seats-dse3b', radioId: 'dse3b' },
-                { id: 'dse4a', count: counts.dse4a, cap: caps.dse4a, labelId: 'seats-dse4a', radioId: 'dse4a' },
-                { id: 'dse4b', count: counts.dse4b, cap: caps.dse4b, labelId: 'seats-dse4b', radioId: 'dse4b' }
-            ];
-
-            courses.forEach(c => {
-                const remaining = c.cap - c.count;
-                const el = document.getElementById(c.labelId);
-                const radio = document.getElementById(c.radioId);
-                const label = radio.nextElementSibling;
-
+        function applyCounts(counts) {
+            Object.keys(CAPS).forEach(code => {
+                const remaining = CAPS[code] - (counts[code] || 0);
+                const id = SEAT_IDS[code];
+                const el = document.getElementById('seats-' + id);
+                const radio = document.getElementById(id);
                 if (remaining <= 0) {
-                    el.innerHTML = "❌ Course Full";
-                    el.style.color = "var(--error)";
+                    el.innerHTML = '❌ Course Full';
+                    el.style.color = 'var(--error)';
                     radio.disabled = true;
-                    label.dataset.disabled = "true";
+                    radio.checked = false;
                 } else {
                     el.innerHTML = `✅ ${remaining} seat${remaining !== 1 ? 's' : ''} remaining`;
-                    el.style.color = remaining <= 5 ? "#e65100" : "var(--success)";
+                    el.style.color = remaining <= 5 ? '#e65100' : 'var(--success)';
                     radio.disabled = false;
-                    if (label.dataset.disabled === "true") {
-                        delete label.dataset.disabled;
-                    }
                 }
             });
         }
 
-        function handleSubmit(e) {
+        async function updateSeatAvailability() {
+            try {
+                const data = await apiCounts();
+                if (data.ok) applyCounts(data.counts);
+            } catch (e) {
+                console.error('Could not load seat counts', e);
+            }
+        }
+
+        async function handleSubmit(e) {
             e.preventDefault();
             const regNumber = document.getElementById('regNumber').value.trim().toUpperCase();
             const studentName = document.getElementById('studentName').value.trim();
@@ -763,87 +771,62 @@
 
             if (!regNumber || !validateRegNumber(regNumber)) {
                 document.getElementById('regNumber').classList.add('error');
+                document.getElementById('regError').textContent = 'Enter a valid registration number (24UCS101 – 24UCS175)';
                 document.getElementById('regError').classList.add('show');
                 isValid = false;
-            } else {
-                document.getElementById('regNumber').classList.remove('error');
-                document.getElementById('regError').classList.remove('show');
             }
-
             if (!studentName || studentName.length < 2) {
                 document.getElementById('studentName').classList.add('error');
                 document.getElementById('nameError').classList.add('show');
                 isValid = false;
-            } else {
-                document.getElementById('studentName').classList.remove('error');
-                document.getElementById('nameError').classList.remove('show');
             }
-
             if (!dse3) { document.getElementById('dse3Error').classList.add('show'); isValid = false; }
-            else { document.getElementById('dse3Error').classList.remove('show'); }
-
             if (!dse4) { document.getElementById('dse4Error').classList.add('show'); isValid = false; }
-            else { document.getElementById('dse4Error').classList.remove('show'); }
-
             if (!isValid) return false;
 
-            const registrations = getRegistrations();
-            
-            // Final capacity check before saving
-            const counts = {
-                dse3a: registrations.filter(r => r.dse3 === "23UCS63ES03A - Big Data Analytics").length,
-                dse3b: registrations.filter(r => r.dse3 === "23UCS63ES03B - Cloud Computing").length,
-                dse4a: registrations.filter(r => r.dse4 === "23UCS63ES04A - Internet of Things").length,
-                dse4b: registrations.filter(r => r.dse4 === "23UCS63ES04B - Artificial Intelligence and Machine Learning").length
-            };
+            const btn = document.getElementById('submitBtn');
+            btn.disabled = true;
+            btn.textContent = '⏳ Submitting...';
 
-            if (dse3.value === "23UCS63ES03A - Big Data Analytics" && counts.dse3a >= 33) {
-                alert("⚠️ Big Data Analytics is now full (33/33). Please choose Cloud Computing.");
-                return false;
-            }
-            if (dse3.value === "23UCS63ES03B - Cloud Computing" && counts.dse3b >= 32) {
-                alert("⚠️ Cloud Computing is now full (32/32). Please choose Big Data Analytics.");
-                return false;
-            }
-            if (dse4.value === "23UCS63ES04A - Internet of Things" && counts.dse4a >= 33) {
-                alert("⚠️ Internet of Things is now full (33/33). Please choose AI & Machine Learning.");
-                return false;
-            }
-            if (dse4.value === "23UCS63ES04B - Artificial Intelligence and Machine Learning" && counts.dse4b >= 32) {
-                alert("⚠️ AI & Machine Learning is now full (32/32). Please choose Internet of Things.");
-                return false;
-            }
+            try {
+                const result = await apiPost({
+                    action: 'register',
+                    regNumber: regNumber,
+                    name: studentName,
+                    dse3: dse3.value.split(' - ')[0],
+                    dse4: dse4.value.split(' - ')[0]
+                });
 
-            if (registrations.some(r => r.regNumber === regNumber)) {
-                document.getElementById('regNumber').classList.add('error');
-                document.getElementById('regError').textContent = 'This registration number has already been submitted!';
-                document.getElementById('regError').classList.add('show');
-                return false;
+                if (!result.ok) {
+                    if (result.code === 'DUPLICATE') {
+                        document.getElementById('regNumber').classList.add('error');
+                        document.getElementById('regError').textContent = result.error;
+                        document.getElementById('regError').classList.add('show');
+                    } else {
+                        alert('⚠️ ' + result.error);
+                    }
+                    if (result.counts) applyCounts(result.counts);
+                    return false;
+                }
+
+                document.getElementById('successMsg').innerHTML = `
+                    <strong>${esc(studentName)}</strong> (${esc(regNumber)})<br><br>
+                    <strong>DSE-3:</strong> ${esc(dse3.value.split(' - ')[1])}<br>
+                    <strong>DSE-4:</strong> ${esc(dse4.value.split(' - ')[1])}<br><br>
+                    Your selection has been recorded on ${esc(result.timestamp)}.
+                `;
+                document.getElementById('successModal').classList.add('show');
+                document.getElementById('studentForm').reset();
+                document.querySelectorAll('.error').forEach(el => el.classList.remove('error'));
+                document.querySelectorAll('.error-msg').forEach(el => el.classList.remove('show'));
+                applyCounts(result.counts);
+            } catch (err) {
+                alert('⚠️ Could not reach the server. Please check your internet and try again.');
+                console.error(err);
+            } finally {
+                btn.disabled = false;
+                btn.textContent = '✅ Submit Course Selection';
             }
-
-            const record = {
-                regNumber: regNumber,
-                name: studentName,
-                dse3: dse3.value,
-                dse4: dse4.value,
-                timestamp: new Date().toLocaleString('en-IN', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' })
-            };
-
-            registrations.push(record);
-            saveRegistrations(registrations);
-
-            document.getElementById('successMsg').innerHTML = `
-                <strong>${studentName}</strong> (${regNumber})<br><br>
-                <strong>DSE-3:</strong> ${dse3.value.split(' - ')[1]}<br>
-                <strong>DSE-4:</strong> ${dse4.value.split(' - ')[1]}<br><br>
-                Your selection has been recorded on ${record.timestamp}.
-            `;
-            document.getElementById('successModal').classList.add('show');
-            document.getElementById('studentForm').reset();
-            document.querySelectorAll('.error').forEach(el => el.classList.remove('error'));
-            document.querySelectorAll('.error-msg').forEach(el => el.classList.remove('show'));
-            
-            updateSeatAvailability();
             return false;
         }
 
@@ -851,21 +834,36 @@
             document.getElementById('successModal').classList.remove('show');
         }
 
-        function adminLoginFn() {
+        async function adminLoginFn() {
             const user = document.getElementById('adminUser').value.trim();
-            const pass = document.getElementById('adminPass').value.trim();
-            if (user === 'admin' && pass === '123') {
-                document.getElementById('adminLogin').style.display = 'none';
-                document.getElementById('adminDashboard').classList.add('active');
-                document.getElementById('logoutBtn').classList.add('show');
-                loadDashboard();
-            } else {
-                document.getElementById('loginError').classList.add('show');
-                setTimeout(() => document.getElementById('loginError').classList.remove('show'), 3000);
+            const pass = document.getElementById('adminPass').value;
+            try {
+                const result = await apiPost({ action: 'list', username: user, password: pass });
+                if (result.ok) {
+                    adminCreds = { username: user, password: pass };
+                    adminRows = result.rows;
+                    document.getElementById('adminLogin').style.display = 'none';
+                    document.getElementById('adminDashboard').classList.add('active');
+                    document.getElementById('logoutBtn').classList.add('show');
+                    renderDashboard();
+                } else {
+                    showLoginError(result.error);
+                }
+            } catch (e) {
+                showLoginError('Could not reach the server.');
             }
         }
 
+        function showLoginError(msg) {
+            const el = document.getElementById('loginError');
+            el.textContent = msg || 'Invalid username or password. Please try again.';
+            el.classList.add('show');
+            setTimeout(() => el.classList.remove('show'), 3000);
+        }
+
         function adminLogout() {
+            adminCreds = null;
+            adminRows = [];
             document.getElementById('adminLogin').style.display = 'block';
             document.getElementById('adminDashboard').classList.remove('active');
             document.getElementById('logoutBtn').classList.remove('show');
@@ -873,131 +871,91 @@
             document.getElementById('adminPass').value = '';
         }
 
+        async function refreshData() {
+            if (!adminCreds) return;
+            try {
+                const result = await apiPost({ action: 'list', ...adminCreds });
+                if (result.ok) { adminRows = result.rows; renderDashboard(); }
+                else alert(result.error);
+            } catch (e) { alert('Could not reach the server.'); }
+        }
+
         function setCountColor(elementId, current, max) {
             const el = document.getElementById(elementId);
             el.textContent = `${current} / ${max}`;
             if (current >= max) {
-                el.style.color = 'var(--error)';
-                el.style.background = 'rgba(198, 40, 40, 0.1)';
+                el.style.color = 'var(--error)'; el.style.background = 'rgba(198, 40, 40, 0.1)';
             } else if (current >= max - 5) {
-                el.style.color = '#e65100';
-                el.style.background = 'rgba(249, 168, 37, 0.15)';
+                el.style.color = '#e65100'; el.style.background = 'rgba(249, 168, 37, 0.15)';
             } else {
-                el.style.color = 'var(--primary)';
-                el.style.background = 'rgba(26, 35, 126, 0.08)';
+                el.style.color = 'var(--primary)'; el.style.background = 'rgba(26, 35, 126, 0.08)';
             }
         }
 
-        function loadDashboard() {
-            const registrations = getRegistrations();
-            const sorted = [...registrations].sort((a, b) => {
-                return parseInt(a.regNumber.replace('24UCS', '')) - parseInt(b.regNumber.replace('24UCS', ''));
-            });
-
-            document.getElementById('totalStudents').textContent = registrations.length;
-            document.getElementById('totalRemaining').textContent = Math.max(0, 65 - registrations.length);
-
-            let dse3Total = 0, dse4Total = 0, bda = 0, cc = 0, iot = 0, ai = 0;
-            registrations.forEach(r => {
-                if (r.dse3) dse3Total++;
-                if (r.dse4) dse4Total++;
-                if (r.dse3 && r.dse3.includes('Big Data')) bda++;
-                if (r.dse3 && r.dse3.includes('Cloud')) cc++;
-                if (r.dse4 && r.dse4.includes('Internet')) iot++;
-                if (r.dse4 && r.dse4.includes('Artificial')) ai++;
-            });
-
-            document.getElementById('dse3Count').textContent = dse3Total;
-            document.getElementById('dse4Count').textContent = dse4Total;
-            setCountColor('bdaCount', bda, 33);
-            setCountColor('ccCount', cc, 32);
-            setCountColor('iotCount', iot, 33);
-            setCountColor('aiCount', ai, 32);
-
-            const tbody = document.getElementById('tableBody');
-            const noData = document.getElementById('noData');
-
-            if (sorted.length === 0) {
-                tbody.innerHTML = '';
-                noData.style.display = 'block';
-                return;
-            }
-
-            noData.style.display = 'none';
-            tbody.innerHTML = sorted.map((r, i) => {
-                const dse3Tag = r.dse3.includes('Big Data') ? 'tag-bda' : 'tag-cc';
-                const dse4Tag = r.dse4.includes('Internet') ? 'tag-iot' : 'tag-ai';
-                const dse3Short = r.dse3.includes('Big Data') ? 'Big Data Analytics' : 'Cloud Computing';
-                const dse4Short = r.dse4.includes('Internet') ? 'Internet of Things' : 'AI & Machine Learning';
-                return `
-                    <tr>
-                        <td>${i + 1}</td>
-                        <td class="reg-number">${r.regNumber}</td>
-                        <td>${r.name}</td>
-                        <td><span class="course-tag ${dse3Tag}">${dse3Short}</span></td>
-                        <td><span class="course-tag ${dse4Tag}">${dse4Short}</span></td>
-                        <td style="font-size:0.82rem; color:var(--text-muted);">${r.timestamp}</td>
-                    </tr>
-                `;
-            }).join('');
+        function sortedRows() {
+            return [...adminRows].sort((a, b) =>
+                parseInt(a.regNumber.replace('24UCS', '')) - parseInt(b.regNumber.replace('24UCS', '')));
         }
 
-        let currentFilter = 'all';
+        function renderDashboard() {
+            const rows = adminRows;
+            const c = { '23UCS63ES03A': 0, '23UCS63ES03B': 0, '23UCS63ES04A': 0, '23UCS63ES04B': 0 };
+            rows.forEach(r => { if (c[r.dse3Code] !== undefined) c[r.dse3Code]++; if (c[r.dse4Code] !== undefined) c[r.dse4Code]++; });
+
+            document.getElementById('totalStudents').textContent = rows.length;
+            document.getElementById('totalRemaining').textContent = Math.max(0, 65 - rows.length);
+            document.getElementById('dse3Count').textContent = c['23UCS63ES03A'] + c['23UCS63ES03B'];
+            document.getElementById('dse4Count').textContent = c['23UCS63ES04A'] + c['23UCS63ES04B'];
+            setCountColor('bdaCount', c['23UCS63ES03A'], 33);
+            setCountColor('ccCount', c['23UCS63ES03B'], 32);
+            setCountColor('iotCount', c['23UCS63ES04A'], 33);
+            setCountColor('aiCount', c['23UCS63ES04B'], 32);
+            renderTable();
+        }
+
         function filterTable(filter, btn) {
             currentFilter = filter;
             document.querySelectorAll('.filter-tab').forEach(t => t.classList.remove('active'));
             btn.classList.add('active');
+            renderTable();
+        }
 
-            const registrations = getRegistrations();
-            const sorted = [...registrations].sort((a, b) => parseInt(a.regNumber.replace('24UCS', '')) - parseInt(b.regNumber.replace('24UCS', '')));
-            let filtered = sorted;
-            
-            if (filter === 'bda') filtered = sorted.filter(r => r.dse3 && r.dse3.includes('Big Data'));
-            else if (filter === 'cc') filtered = sorted.filter(r => r.dse3 && r.dse3.includes('Cloud'));
-            else if (filter === 'iot') filtered = sorted.filter(r => r.dse4 && r.dse4.includes('Internet'));
-            else if (filter === 'ai') filtered = sorted.filter(r => r.dse4 && r.dse4.includes('Artificial'));
+        function renderTable() {
+            let list = sortedRows();
+            const map = { bda: ['dse3Code', '23UCS63ES03A'], cc: ['dse3Code', '23UCS63ES03B'],
+                          iot: ['dse4Code', '23UCS63ES04A'], ai: ['dse4Code', '23UCS63ES04B'] };
+            if (map[currentFilter]) list = list.filter(r => r[map[currentFilter][0]] === map[currentFilter][1]);
 
             const tbody = document.getElementById('tableBody');
             const noData = document.getElementById('noData');
-
-            if (filtered.length === 0) {
+            if (list.length === 0) {
                 tbody.innerHTML = '';
                 noData.style.display = 'block';
-                noData.querySelector('p').textContent = 'No students found for this filter.';
+                noData.querySelector('p').textContent = currentFilter === 'all'
+                    ? 'No registrations yet. Student data will appear here.'
+                    : 'No students found for this filter.';
                 return;
             }
-
             noData.style.display = 'none';
-            tbody.innerHTML = filtered.map((r, i) => {
-                const dse3Tag = r.dse3.includes('Big Data') ? 'tag-bda' : 'tag-cc';
-                const dse4Tag = r.dse4.includes('Internet') ? 'tag-iot' : 'tag-ai';
-                const dse3Short = r.dse3.includes('Big Data') ? 'Big Data Analytics' : 'Cloud Computing';
-                const dse4Short = r.dse4.includes('Internet') ? 'Internet of Things' : 'AI & Machine Learning';
-                return `
-                    <tr>
-                        <td>${i + 1}</td>
-                        <td class="reg-number">${r.regNumber}</td>
-                        <td>${r.name}</td>
-                        <td><span class="course-tag ${dse3Tag}">${dse3Short}</span></td>
-                        <td><span class="course-tag ${dse4Tag}">${dse4Short}</span></td>
-                        <td style="font-size:0.82rem; color:var(--text-muted);">${r.timestamp}</td>
-                    </tr>
-                `;
-            }).join('');
+            tbody.innerHTML = list.map((r, i) => `
+                <tr>
+                    <td>${i + 1}</td>
+                    <td class="reg-number">${esc(r.regNumber)}</td>
+                    <td>${esc(r.name)}</td>
+                    <td><span class="course-tag ${TAG[r.dse3Code] || ''}">${esc(SHORT[r.dse3Code] || r.dse3Name)}</span></td>
+                    <td><span class="course-tag ${TAG[r.dse4Code] || ''}">${esc(SHORT[r.dse4Code] || r.dse4Name)}</span></td>
+                    <td style="font-size:0.82rem; color:var(--text-muted);">${esc(r.timestamp)}</td>
+                </tr>`).join('');
         }
 
         function downloadCSV() {
-            const registrations = getRegistrations();
-            const sorted = [...registrations].sort((a, b) => parseInt(a.regNumber.replace('24UCS', '')) - parseInt(b.regNumber.replace('24UCS', '')));
-            if (sorted.length === 0) { alert('No data to download!'); return; }
-
+            const rows = sortedRows();
+            if (rows.length === 0) { alert('No data to download!'); return; }
+            const q = s => '"' + String(s).replace(/"/g, '""') + '"';
             let csv = 'S.No,Registration Number,Student Name,DSE-3 Code,DSE-3 Course,DSE-4 Code,DSE-4 Course,Submitted On\n';
-            sorted.forEach((r, i) => {
-                const dse3Parts = r.dse3.split(' - ');
-                const dse4Parts = r.dse4.split(' - ');
-                csv += `${i + 1},"${r.regNumber}","${r.name}","${dse3Parts[0]}","${dse3Parts[1]}","${dse4Parts[0]}","${dse4Parts[1]}","${r.timestamp}"\n`;
+            rows.forEach((r, i) => {
+                csv += [i + 1, q(r.regNumber), q(r.name), q(r.dse3Code), q(r.dse3Name), q(r.dse4Code), q(r.dse4Name), q(r.timestamp)].join(',') + '\n';
             });
-
             const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
             const link = document.createElement('a');
             link.href = URL.createObjectURL(blob);
@@ -1006,39 +964,21 @@
             URL.revokeObjectURL(link.href);
         }
 
-        function clearAllData() {
-            if (confirm('⚠️ Are you sure you want to delete ALL registration data? This action cannot be undone!')) {
-                if (confirm('This will permanently remove all student records and reset seat counts. Confirm?')) {
-                    localStorage.removeItem('electiveRegistrations');
-                    loadDashboard();
-                    updateSeatAvailability();
-                    alert('All data has been cleared successfully.');
-                }
-            }
-        }
-
         document.getElementById('regNumber').addEventListener('input', function() {
             this.value = this.value.toUpperCase();
             this.classList.remove('error');
             document.getElementById('regError').classList.remove('show');
         });
-
         document.getElementById('studentName').addEventListener('input', function() {
             this.classList.remove('error');
             document.getElementById('nameError').classList.remove('show');
         });
-
         document.querySelectorAll('input[name="dse3"], input[name="dse4"]').forEach(r => {
-            r.addEventListener('change', () => {
-                document.getElementById(r.name + 'Error').classList.remove('show');
-            });
+            r.addEventListener('change', () => document.getElementById(r.name + 'Error').classList.remove('show'));
         });
-
         document.getElementById('successModal').addEventListener('click', function(e) {
             if (e.target === this) closeModal();
         });
-
-        // Initialize seat counters on page load
         document.addEventListener('DOMContentLoaded', updateSeatAvailability);
     </script>
 </body>
